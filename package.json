@@ -2,7 +2,7 @@
   "//1": "describes your app and its dependencies",
   "//2": "https://docs.npmjs.com/files/package.json",
   "//3": "updating this file will download and update your packages",
-  "name": "networked-aframe-glitch",
+  "name": "naf-nametag-solidjs",
   "version": "0.0.1",
   "description": "What am I about?",
   "main": "server.js",
@@ -26,12 +26,11 @@
     "node": ">=16"
   },
   "repository": {
-    "url": "https://glitch.com/edit/#!/naf-nametag-solidjs"
+    "url": "https://github.com/networked-aframe/naf-nametag-solidjs"
   },
   "license": "MIT",
   "keywords": [
     "node",
-    "glitch",
     "express"
   ],
   "devDependencies": {
