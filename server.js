@@ -9,7 +9,7 @@ const easyrtc = require("open-easyrtc"); // EasyRTC external module
 process.title = "networked-aframe-server";
 
 // Get port or default to 8080
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 3000;
 
 // Setup and configure Express http server.
 const app = express();
@@ -36,8 +36,7 @@ const webServer = http.createServer(app);
 // Start Socket.io so it attaches itself to Express server
 const socketServer = socketIo(webServer, { "log level": 1 });
 const myIceServers = [
-  { urls: "stun:stun1.l.google.com:19302" },
-  { urls: "stun:stun2.l.google.com:19302" },
+  { urls: "stun:atembiennial.space:5349" }
   // {
   //   "urls":"turn:[ADDRESS]:[PORT]",
   //   "username":"[USERNAME]",
