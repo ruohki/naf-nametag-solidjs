@@ -1,0 +1,515 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Mnemonic Garden</title>
+    <meta name="description" content="Mnemonic Garden" />
+
+    <script src="./js/aframe.min.js"></script>
+    <script src="./js/aframe-environment-component.min.js"></script>
+        <script src="./js/networked-aframe.min.js"></script>
+       <script src="./js/socket.io.min.js"></script>
+    <script src="/easyrtc/easyrtc.js"></script> -->
+    <!-- <script src="https://unpkg.com/open-easyrtc@2.1.0/api/easyrtc.js"></script> -->
+    <script src="./js/aframe-extras.min.js"></script>
+    <script src="./js/aframe-pointcloud-component.min.js"></script> 
+    <script src="./js/aframe-resonance-audio-component.min.js"></script>
+    <script src="./js/aframe-super-keyboard.min.js"></script>
+    <!--<script src="https://cdn.jsdelivr.net/gh/Hypnos-phi/aframe-extras@37fd255/dist/aframe-extras.controls.min.js"></script> -->
+    <script src="mirror.js"></script> 
+    <script src="aframe-bytebeat.js"></script>
+   <!-- <script>
+      AFRAME.registerComponent("trigger-logging", {
+        init: function () {
+          this.el.addEventListener("gripdown", this.logThumbstick);
+        },
+        logThumbstick: function () {
+          console.log("trigger");
+        },
+      });
+    </script>-->
+
+    <script>
+      window.ntExample = {
+        randomColor: () => {
+          return (
+            "#" +
+            new THREE.Color(
+              Math.random(),
+              Math.random(),
+              Math.random()
+            ).getHexString()
+          );
+        },
+      };
+
+      AFRAME.registerComponent("player-info", {
+        // notice that color and name are both listed in the schema; NAF will only keep
+        // properties declared in the schema in sync.
+        schema: {
+          name: {
+            type: "string",
+            default: "user-" + Math.round(Math.random() * 10000),
+          },
+          color: {
+            type: "color", // btw: color is just a string under the hood in A-Frame
+            default: window.ntExample.randomColor(),
+          },
+        },
+
+        init: function () {
+          this.head = this.el.querySelector(".head");
+          this.nametag = this.el.querySelector(".nametag");
+
+          this.ownedByLocalUser = this.el.id === "player";
+          if (this.ownedByLocalUser) {
+            // populate the html overlay with the correct name on init
+            this.nametagInput = document.getElementById("username-overlay");
+            this.nametagInput.value = this.data.name;
+
+            // add the initial color to the html overlay color picker button
+            document.querySelector("button").style.backgroundColor =
+              this.data.color;
+            document.querySelector("button").style.color = this.data.color;
+          }
+        },
+
+        // here as an example, not used in current demo. Could build a user list, expanding on this.
+        listUsers: function () {
+          console.log(
+            "userlist",
+            [...document.querySelectorAll("[player-info]")].map(
+              (el) => el.components["player-info"].data.name
+            )
+          );
+        },
+
+        newRandomColor: function () {
+          this.el.setAttribute(
+            "player-info",
+            "color",
+            window.ntExample.randomColor()
+          );
+        },
+
+        update: function () {
+          if (this.head)
+            this.head.setAttribute("material", "color", this.data.color);
+          if (this.nametag) this.nametag.setAttribute("value", this.data.name);
+        },
+      });
+    </script>
+    <script>
+      // see issue https://github.com/networked-aframe/networked-aframe/issues/267
+      NAF.schemas.getComponentsOriginal = NAF.schemas.getComponents;
+      NAF.schemas.getComponents = (template) => {
+        if (!NAF.schemas.hasTemplate("#avatar-template")) {
+          NAF.schemas.add({
+            template: "#avatar-template",
+            components: ["position", "rotation", "player-info"],
+          });
+        }
+        if (!NAF.schemas.hasTemplate("#sphere-template")) {
+          NAF.schemas.add({
+            template: "#sphere-template",
+            components: [
+              "position",
+              {
+                component: "bytebeat",
+                property: "code",
+              },
+            ],
+          });
+        }
+        const components = NAF.schemas.getComponentsOriginal(template);
+        return components;
+      };
+    </script>
+ 
+   <script src="./js/spawn-in-circle.component.js"></script>
+    <script src="./js/color-changer.component.js"></script>
+    <script src="./js/spawner-persistent.component.js"></script>
+    <script src="./js/persistent-p2p.component.js"></script>
+    <!--
+      The spawner-persistent and persistent-p2p components go together,
+      spawner-persistent is set on the player entity,
+      persistent-p2p on the a-scene entity.
+      The persistent-p2p component handle the logic of keeping the persistent entities peer to peer.
+      The spheres are kept in the room if there is at least one participant remaining in the room.
+    -->
+    <link rel="stylesheet" type="text/css" href="/css/style.css" />
+  </head>
+  <body>
+    <input
+      id="username-overlay"
+      style="z-index: 100; bottom: 24px; left: 48px; position: fixed"
+      oninput="document.getElementById('player').setAttribute('player-info', 'name', this.value)"
+      value="User Name"
+    />
+
+    <a-scene
+      cursor="rayOrigin: mouse"
+      raycaster="objects:.raycastable"
+      persistent-p2p
+      networked-scene="
+        room: mnemonic-garden;
+        debug: true;
+        adapter: wseasyrtc"
+      shadow="type: pcfsoft"
+    >
+      <a-resonance-audio-room
+        id="ResonanceRoom"
+        position="0 4 0"
+        width="50"
+        height="6"
+        depth="50"
+        ambisonic-order="3"
+        speed-of-sound="343"
+        left="curtain-heavy"
+        right="curtain-heavy"
+        front="curtain-heavy"
+        back="curtain-heavy"
+        down="curtain-heavy"
+        up="acoustic-ceiling-tiles"
+        visualize="false"
+      >
+      </a-resonance-audio-room>
+
+      <a-assets>
+        <a-asset-item
+          id="sculpt"
+          src="sculpt.obj"
+        ></a-asset-item>
+        <a-asset-item
+          id="sculpt2"
+          src="sculp2.obj"
+        ></a-asset-item>
+
+        <a-asset-item
+          id="sculpt3"
+          src="sculpt3.obj"
+        ></a-asset-item>
+
+        <a-asset-item
+          id="rock"
+          src="rock.obj"
+        ></a-asset-item>
+
+        <a-asset-item
+          id="rock2"
+          src="rock2.obj"
+        ></a-asset-item>
+
+        <a-asset-item
+          id="rock3"
+          src="rock3.obj"
+        ></a-asset-item>
+
+        <a-asset-item
+          id="planet"
+          src="planet.obj"
+        ></a-asset-item>
+
+        <!-- Templates -->
+        <template id="sphere-template">
+            <a-entity
+              class="raycastable"
+              geometry="primitive: box"
+              material="color:green;blending:subtractive;shader:flat;"
+              bytebeat-canvas-updater
+              text="value:Hello World;side:double"
+              resonance-audio-src="
+            src:;
+            loop: true;
+            autoplay: true;"
+              bytebeat=""
+              position="0 1.6 0"
+            >
+              <a-entity
+                id="keyboard"
+                super-keyboard="hand:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ; imagePath:./;multipleInputs:true;align:center"
+                byte-keyboard
+                position="0 -0.6 +0.6"
+                rotation="-30 0 0"
+              ></a-entity>
+            </a-entity>
+        </template>
+
+        <template id="rig-template">
+          <a-entity></a-entity>
+        </template>
+        <!-- Avatar -->
+
+        <template id="avatar-template">
+          <a-entity class="avatar">
+            <a-pointcloud
+              class="head"
+              scale="2 2 2"
+              rotation="0 180 0"
+              src="head.ply"
+              size="0.001"
+            >
+            </a-pointcloud>
+            <a-text
+              class="nametag"
+              value="?"
+              align="center"
+              rotation="0 180 0"
+              position="0 0.8 -0.5"
+              side="double"
+              scale=".5 .5 .5"
+            ></a-text>
+          </a-entity>
+        </template>
+        <!-- /Templates -->
+      </a-assets>
+
+      <a-entity
+        environment="skyType:atmosphere;ground:canyon;groundTexture:none;shadow:true;lighting:distant;shadowSize:100;fog:0;playArea:1.3;groundYScale:20;groundColor:#CCCCCC;groundColor2:#FFFFFF;"
+      ></a-entity>
+
+
+      <a-pointcloud
+        scale="20 20 20"
+        rotation="15 180 0"
+        src="forest.ply"
+        size="0.01"
+        position="0 25 -30"
+      >
+      </a-pointcloud>
+
+      <a-pointcloud
+        scale="20 20 20"
+        rotation="15 180 0"
+        src="forest.ply"
+        size="0.01"
+        position="0 25 10"
+      >
+      </a-pointcloud>
+
+      <a-pointcloud
+        scale="20 20 20"
+        rotation="15 180 0"
+        src="forest2.ply"
+        size="0.01"
+        position="0 25 60"
+      >
+      </a-pointcloud>
+
+      <a-pointcloud
+        scale="20 20 20"
+        rotation="15 0 0"
+        src="forest2.ply"
+        size="0.01"
+        position="0 25 20"
+      >
+      </a-pointcloud>
+
+      <a-pointcloud
+        scale="20 20 20"
+        rotation="15 0 0"
+        src="forest2.ply"
+        size="0.01"
+        position="0 25 -40"
+      >
+      </a-pointcloud>
+
+      <a-pointcloud
+        scale="20 20 20"
+        rotation="15 0 0"
+        src="forest2.ply"
+        size="0.01"
+        position="-10 25 -60"
+      >
+      </a-pointcloud>
+
+      <a-pointcloud
+        scale="20 20 20"
+        rotation="15 180 0"
+        src="forest2.ply"
+        size="0.01"
+        position="-30 25 0"
+      >
+      </a-pointcloud>
+
+      <a-pointcloud
+        scale="20 20 20"
+        rotation="15 90 0"
+        src="forest2.ply"
+        size="0.01"
+        position="-30 25 -30"
+      >
+      </a-pointcloud>
+      <a-sphere
+        mirror="resolution: 256; distance: 1000; interval: 200; repeat: true"
+        segments-radius="32"
+        segments-height="32"
+        radius="5"
+        position="-5 5 -16"
+        shadow
+      ></a-sphere>
+      <a-sphere
+        mirror="resolution: 256; distance: 1000; interval: 200; repeat: true"
+        segments-radius="32"
+        segments-height="32"
+        radius="2.5"
+        position="2 2.5 -16"
+        shadow
+      ></a-sphere>
+      <a-sphere
+        mirror="resolution: 256; distance: 1000; interval: 200; repeat: true"
+        segments-radius="32"
+        segments-height="32"
+        radius="1.5"
+        position="-1 1.5 -13"
+        shadow
+      ></a-sphere>
+
+      <a-icosahedron
+        material="color:green;src:#gfx;blending:subtractive;shader:flat;"
+        bytebeat-canvas-updater
+        position="15 0 5"
+        scale="5 5 5"
+        rotation="0 0 -90"
+        animation="property:rotation;from:0 0 -90;to:0 360 -90;dur:100000;loop:true;easing:linear"
+      ></a-icosahedron>
+      <a-box
+        material="color:green;src:#gfx;blending:subtractive;shader:flat;"
+        bytebeat-canvas-updater
+        position="-15 2 -15"
+        scale="5 5 5"
+      ></a-box>
+
+      
+      <a-entity
+        obj-model="obj: #sculpt;"
+        scale="0.1 0.1 0.1"
+        rotation="45 0 0"
+        position="-40 20 -30"
+        shadow
+      >
+      </a-entity>
+      <a-entity
+        obj-model="obj: #sculpt2;"
+        scale="0.1 0.1 0.1"
+        rotation="45 0 0"
+        position="40 30 -10"
+        shadow
+      >
+      </a-entity>
+      <a-entity
+        obj-model="obj: #sculpt3;"
+        scale="0.1 0.1 0.1"
+        rotation="45 0 0"
+        position="20 30 30"
+        shadow
+      >
+      </a-entity>
+
+      <a-entity
+        obj-model="obj: #rock;"
+        scale="0.5 0.5 0.5"
+        rotation="45 0 0"
+        position="-50 80 -130"
+        animation="property:position;from: -90 80 -130; to: -90 85 -130;dur:4000;loop:true;dir:alternate;"
+      >
+      </a-entity>
+
+      <a-entity
+        obj-model="obj: #rock2;"
+        scale="0.5 0.5 0.5"
+        rotation="45 0 0"
+        position="80 120 -140"
+        animation="property:position;from: 80 120 -140; to: 80 115 -140;dur:5000;loop:true;dir:alternate;"
+      >
+      </a-entity>
+
+      <a-entity
+        obj-model="obj: #rock3;"
+        scale="0.5 0.5 0.5"
+        rotation="45 0 0"
+        position="20 150 50"
+        animation="property:position;from: 20 150 50; to: 20 145 50;dur:5000;loop:true;dir:alternate;"
+      >
+      </a-entity>
+<!--
+      <a-plane
+        material="color:green;src:#gfx;blending:subtractive;side:double;shader:flat;"
+        bytebeat-canvas-updater
+        position="8 0 -10"
+        scale="15 15 15"
+        rotation="45 145 0"
+      ></a-plane>
+-->
+      <a-plane color="blue" width="30" height="15" position="0 20 -30"
+        ><a-text
+          id="srccode"
+          value="Hello World"
+          z-offset="0.02"
+          font="sourcecodepro"
+          scale="5 5 0"
+          position="-14 6 0.04"
+        ></a-text
+      ></a-plane>
+      <!--
+      <a-entity
+        id="player"
+        networked="template:#avatar-template;attachTemplateToLocal:false;"
+        camera
+        position="0 1.6 0"
+        spawn-in-circle="radius:3"
+        spawner-persistent="template:#sphere-template"
+        look-controls
+        wasd-controls
+      >
+      </a-entity> --> 
+      
+      <a-entity
+        id="rig"
+        spawn-in-circle="radius:3"
+        networked="template:#rig-template;"
+        movement-controls
+        spawner-persistent="template:#sphere-template"
+      >
+        <a-entity
+          id="player"
+          camera
+          position="0 1.6 0"
+          look-controls
+          networked="template:#avatar-template;attachTemplateToLocal:false;"
+          visible="true"
+        >
+        </a-entity>
+
+        <a-entity
+          id="my-tracked-left-hand"
+          networked-hand-controls="hand:left;color:gold;"
+        >
+          <a-entity
+            id="leftHand"
+            hand-controls="hand: left; handModelStyle: lowPoly; color: #ffcccc"
+          ></a-entity>
+        </a-entity>
+        <a-entity
+          id="my-tracked-right-hand"
+          networked-hand-controls="hand:right;handModelStyle:controller;"
+        >
+          <a-entity
+            id="rightHand"
+            hand-controls="hand: right; handModelStyle: lowPoly; color: #ffcccc"
+          ></a-entity>
+        </a-entity>
+      </a-entity>
+    </a-scene>
+
+    <script>
+/*
+      var entity = document.querySelector("[sound]");
+      entity.components.sound.playSound();
+      // Called by Networked-Aframe when connected to server
+      function onConnect() {
+        console.log("onConnect", new Date());
+      }
+      */
+    </script>
+  </body>
+</html>

@@ -6,10 +6,14 @@
   "version": "0.0.1",
   "description": "What am I about?",
   "main": "server.js",
+  "nodemonConfig": {
+    "ignore": ["**/src/**", "**/public/**"],
+    "delay": 1000
+  },
   "scripts": {
     "build": "cross-env NODE_ENV=production webpack",
     "start": "cross-env NODE_ENV=development node server.js",
-    "dev": "cross-env NODE_ENV=development node server.js",
+    "dev": "NODE_ENV=development nodemon server.js",
     "dev2": "cross-env NODE_ENV=development webpack serve --mode development",
     "lint": "eslint src",
     "prettier": "prettier --write 'src/**/*.js' 'src/**/*.ts?'"
@@ -44,6 +48,7 @@
     "css-loader": "^6.10.0",
     "eslint": "^8.56.0",
     "eslint-config-standard": "^17.1.0",
+    "nodemon": "^3.1.10",
     "postcss": "^8.4.31",
     "postcss-loader": "^7.3.4",
     "prettier": "^3.2.5",

@@ -1,4 +1,4 @@
-/* global AFRAME NAF */
+/* global AFRAME NAF 
 
 // Temporary workaround for template declaration; see issue 167
 NAF.schemas.getComponentsOriginal = NAF.schemas.getComponents;
@@ -47,5 +47,37 @@ AFRAME.registerComponent('player-info', {
     this.updatedEventDetail.el = undefined;
     if (this.head) this.head.setAttribute('material', 'color', this.data.color);
     if (this.nametag) this.nametag.setAttribute('value', this.data.name);
+  },
+});
+
+
+*/
+
+AFRAME.registerComponent('player-info', {
+  schema: {
+    name: { type: 'string', default: 'anonymous' },
+    muted: { type: 'boolean', default: false },
+  },
+
+  init: function () {
+    this.head = this.el.querySelector('.head');
+    this.nametag = this.el.querySelector('.nametag');
+    this.updatedEventDetail = { el: undefined, data: undefined, oldData: undefined };
+  },
+
+  update: function (oldData) {
+    this.updatedEventDetail.data = this.data;
+    this.updatedEventDetail.oldData = oldData;
+    this.updatedEventDetail.el = this.el;
+    this.el.sceneEl.emit('player-info-updated', this.updatedEventDetail);
+    this.updatedEventDetail.data = undefined;
+    this.updatedEventDetail.oldData = undefined;
+    this.updatedEventDetail.el = undefined;
+    if (this.nametag) this.nametag.setAttribute('value', this.data.name);
+    //if(this.data.name != "Test"){
+      //console.log("from info");
+      //this.el.setAttribute('material', 'color', "#000000");
+      
+    //}
   },
 });

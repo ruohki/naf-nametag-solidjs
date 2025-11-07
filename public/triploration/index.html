@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>T R I P L O R A T I O N</title>
+    <meta name="description" content="T R I P L O R A T I O N" />
+
+    <script src="js/aframe.min.js"></script>
+    <script src="js/post-processing.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.8.1/socket.io.min.js"></script>
+    <script src="/easyrtc/easyrtc.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/networked-aframe@0.14.0/dist/networked-aframe.min.js"></script>
+
+    <script src="js/aframe-extras.min.js"></script>
+    <script src="js/aframe-resonance-audio-component.js"></script>
+    <script src="js/aframe-super-keyboard.js"></script>
+    <script src="js/jibniz.js"></script>
+    <script src="js/aframe-jibniz.js"></script>
+    <script src="../dist/components.js"></script>
+    <script defer src="../dist/ui.js"></script>
+
+    <script>
+      // see issue https://github.com/networked-aframe/networked-aframe/issues/267
+      NAF.schemas.getComponentsOriginal = NAF.schemas.getComponents;
+      NAF.schemas.getComponents = (template) => {
+        if (!NAF.schemas.hasTemplate("#avatar-template")) {
+          NAF.schemas.add({
+            template: "#avatar-template",
+            components: [
+              "position",
+              "rotation",
+              "player-info"
+            ],
+          });
+        }
+        
+        if (!NAF.schemas.hasTemplate("#ibniz-template")) {
+          NAF.schemas.add({
+            template: "#ibniz-template",
+            components: [
+              "position",
+              {},
+              "ibniz",
+              {
+                property: "code",
+                property: "geo",
+              },
+            ],
+          });
+        }
+        const components = NAF.schemas.getComponentsOriginal(template);
+        return components;
+      };
+
+    </script>
+    <script src="js/persistent-p2p.component.js"></script>
+  </head>
+
+  <body>
+    <a-scene
+      persistent-p2p
+      networked-scene="
+      room: basic;
+      debug: true;
+      adapter: wseasyrtc;
+    "
+      post-processing="effect: bloom"
+    >
+      <a-assets>
+        <!-- Templates -->
+
+        <template id="ibniz-template">
+          <a-entity
+            class="raycastable"
+            geometry="primitive: cone"
+            material="src:;displacementMap:;side:double"
+            segments-height="2"
+            segments-radial="4"
+            height="2.5"
+            radius-bottom="2"
+            scale="15 15 15"
+            sound="autoplay: true;loop:true"
+            text="value:_;side:double;xOffset:1;zOffset:1.5;width:3"
+            canvas-updater
+            resonance-audio-src="
+            src:;
+            loop: true;
+            autoplay: true;
+            gain:3.5"
+            ibniz=""
+          >
+            <a-entity
+              id="keyboard"
+              super-keyboard="hand:#player; imagePath:;keyColor:#FFFFFF;keyBgColor:#FFFFFF;align:center"
+              ibniz-keyboard="keyColor:#000000;keyBgColor:#000000"
+              position="0 -0.6 +1.6"
+              rotation="-30 0 0"
+              scale="2 2 2"
+            ></a-entity>
+          </a-entity>
+        </template>
+        <!-- Avatar -->
+
+        <template id="rig-template">
+          <a-entity></a-entity>
+        </template>
+
+        <template id="avatar-template">
+         <!--  <a-entity class="avatar" player-info> --> <a-entity class="avatar" player-info>
+            <a-entity
+              rotation="-30 0 0"
+              scale="1 1.5 1"
+              position="0 0 0.5"
+              animation="property: scale; from: 1 1.2 1; to: 1 1.6 1; dur: 1200; easing: linear; loop: true"
+    
+            >
+              <a-entity class="head" id="head" rotation="0 0 0"
+>
+                <a-text
+                  class="nametag"
+                  value="?"
+                  align="center"
+                  rotation="0 180 0"
+                  position="0 5.8 -0.5"
+                  side="double"
+                  scale="2.5 2.5 2.5"
+                ></a-text>
+                <a-box
+                  depth="2"
+                  height="0.5"
+                  width="3"
+                  position="0 4.8 0"
+                ></a-box>
+                <a-box
+                  depth="2"
+                  height="0.5"
+                  width="4"
+                  position="0 4.0 0"
+                ></a-box>
+                <a-box
+                  depth="2"
+                  height="0.5"
+                  width="3"
+                  position="0 3.2 0"
+                ></a-box>
+                <a-box
+                  depth="2"
+                  height="0.5"
+                  width="2"
+                  position="0 2.4 0"
+                ></a-box>
+              </a-entity>
+              <a-entity id="torso">
+                <a-box
+                  depth="1"
+                  height="0.5"
+                  width="7"
+                  position="0 1.6 0"
+                ></a-box>
+                <a-entity
+                  id="leftarm"
+                  rotation="-10 0 0"
+                  animation="property: rotation; from: -10 0 0; to: 10 0 0; dir:alternate; dur: 1200; easing: linear; loop: true"
+                >
+                  <a-box
+                    depth="1"
+                    height="0.5"
+                    width="2"
+                    position="3.3 0.8 0"
+                  ></a-box>
+                  <a-box
+                    depth="1"
+                    height="0.5"
+                    width="1.8"
+                    position="3.5 0.0 0"
+                  ></a-box>
+                  <a-box
+                    depth="1"
+                    height="0.5"
+                    width="1.5"
+                    position="3.6 -0.8 0"
+                  ></a-box>
+                </a-entity>
+                <a-entity
+                  id="rightarm"
+                  rotation="10 0 0"
+                  animation="property: rotation; from: 10 0 0; to: -10 0 0; dir:alternate; dur: 1200; easing: linear; loop: true"
+                >
+                  <a-box
+                    depth="1"
+                    height="0.5"
+                    width="2"
+                    position="-3.3 0.8 0"
+                  ></a-box>
+                  <a-box
+                    depth="1"
+                    height="0.5"
+                    width="1.8"
+                    position="-3.5 0.0 0"
+                  ></a-box>
+                  <a-box
+                    depth="1"
+                    height="0.5"
+                    width="1.5"
+                    position="-3.6 -0.8 0"
+                  ></a-box>
+                </a-entity>
+                <a-box
+                  depth="1"
+                  height="0.5"
+                  width="3"
+                  position="0 0.8 0"
+                ></a-box>
+                <a-box
+                  depth="1"
+                  height="0.5"
+                  width="3"
+                  position="0 0 0"
+                ></a-box>
+                <a-box
+                  depth="1"
+                  height="0.5"
+                  width="3"
+                  position="0 -0.8 0"
+                ></a-box>
+                <a-box
+                  depth="1"
+                  height="0.5"
+                  width="3"
+                  position="0 -1.6 0"
+                ></a-box>
+                <a-box
+                  depth="1"
+                  height="0.5"
+                  width="2"
+                  position="1 -2.4 0"
+                ></a-box>
+                <a-box
+                  depth="1"
+                  height="0.5"
+                  width="2"
+                  position="-1 -2.4 0"
+                ></a-box>
+              </a-entity>
+              <a-entity
+                id="rightleg"
+                rotation="-10 0 0"
+                animation="property: rotation; from: -10 0 0; to: 10 0 0; dir:alternate; dur: 1200; easing: linear; loop: true"
+              >
+                <a-box
+                  depth="1"
+                  height="0.5"
+                  width="2"
+                  position="-1.5 -3.2 0"
+                ></a-box>
+                <a-box
+                  depth="1"
+                  height="0.5"
+                  width="2"
+                  position="-1.5 -4.0 0"
+                ></a-box>
+                <a-box
+                  depth="1"
+                  height="0.5"
+                  width="2"
+                  position="-1.5 -4.8 0"
+                ></a-box>
+                <a-box
+                  depth="1"
+                  height="0.5"
+                  width="2"
+                  position="-1.5 -5.6 0"
+                ></a-box>
+                <a-box
+                  depth="2"
+                  height="0.5"
+                  width="2"
+                  position="-1.5 -6.4 0"
+                ></a-box>
+              </a-entity>
+              <a-entity
+                id="leftleg"
+                rotation="10 0 0"
+                animation="property: rotation; from: 10 0 0; to: -10 0 0; dir:alternate; dur: 1200; easing: linear; loop: true"
+              >
+                <a-box
+                  depth="1"
+                  height="0.5"
+                  width="2"
+                  position="1.5 -4.0 0"
+                ></a-box>
+                <a-box
+                  depth="1"
+                  height="0.5"
+                  width="2"
+                  position="1.5 -3.2 0"
+                ></a-box>
+
+                <a-box
+                  depth="1"
+                  height="0.5"
+                  width="2"
+                  position="1.5 -4.8 0"
+                ></a-box>
+                <a-box
+                  depth="1"
+                  height="0.5"
+                  width="2"
+                  position="1.5 -5.6 0"
+                ></a-box>
+
+                <a-box
+                  depth="2"
+                  height="0.5"
+                  width="2"
+                  position="1.5 -6.4 0"
+                ></a-box>
+              </a-entity>
+            </a-entity>
+          </a-entity>
+        </template>
+      </a-assets>
+
+      <a-resonance-audio-room
+        id="ResonanceRoom"
+        position="40 20 -40"
+        width="1"
+        height="1"
+        depth="1"
+        ambisonic-order="3"
+        speed-of-sound="343"
+        left="curtain-heavy"
+        right="curtain-heavy"
+        front="curtain-heavy"
+        back="curtain-heavy"
+        down="curtain-heavy"
+        up="curtain-heavy"
+        visualize="false"
+      >
+      </a-resonance-audio-room>
+
+      <!-- PYRAMIDE -->
+
+      <a-entity scale="10 10 10">
+        <a-entity position="0 0 0">
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            radius-bottom="2"
+            position="0 0 0"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            position="2.8 0 -2.8"
+            radius-bottom="2"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            position="2.8 0 0"
+            radius-bottom="2"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            position="0 0 -2.8"
+            radius-bottom="2"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            position="1.4 2.5 -1.4"
+            radius-bottom="2"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+        </a-entity>
+        <a-entity position="5.6 0 0">
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            position="0 0 0"
+            radius-bottom="2"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            position="2.8 0 -2.8"
+            radius-bottom="2"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            position="2.8 0 0"
+            radius-bottom="2"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            position="0 0 -2.8"
+            radius-bottom="2"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            position="1.4 2.5 -1.4"
+            radius-bottom="2"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+        </a-entity>
+        <a-entity position="5.6 0 -5.6">
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            position="0 0 0"
+            radius-bottom="2"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            position="2.8 0 -2.8"
+            radius-bottom="2"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            position="2.8 0 0"
+            radius-bottom="2"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            position="0 0 -2.8"
+            radius-bottom="2"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            position="1.4 2.5 -1.4"
+            radius-bottom="2"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+        </a-entity>
+        <a-entity position="0 0 -5.6">
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            position="0 0 0"
+            radius-bottom="2"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            position="2.8 0 -2.8"
+            radius-bottom="2"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            position="2.8 0 0"
+            radius-bottom="2"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            position="0 0 -2.8"
+            radius-bottom="2"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            position="1.4 2.5 -1.4"
+            radius-bottom="2"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+        </a-entity>
+        <a-entity position="2.8 5 -2.8">
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            position="0 0 0"
+            radius-bottom="2"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            position="2.8 0 -2.8"
+            radius-bottom="2"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            position="2.8 0 0"
+            radius-bottom="2"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            position="0 0 -2.8"
+            radius-bottom="2"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+          <a-cone
+            segments-height="1"
+            segments-radial="4"
+            height="2.5"
+            position="1.4 2.5 -1.4"
+            radius-bottom="2"
+            material="wireframe:true"
+            rotation="0 45 0"
+          ></a-cone>
+        </a-entity>
+      </a-entity>
+      <a-entity
+        id="rig"
+        networked="template:#rig-template;"
+        movement-controls="fly:true;speed:1"
+        ibniz-persistent="template:#ibniz-template"
+      >
+        <a-entity
+          id="player"
+          camera
+          cursor__mouse="rayOrigin: mouse"
+          position="0 1.6 0"
+          look-controls
+          networked="template:#avatar-template;"
+          visible="true"
+        >
+        </a-entity>
+      </a-entity>
+      <a-entity light="type: ambient; color: #BBB"></a-entity>
+      <a-entity
+        light="type: directional; color: #FFF; intensity: 1"
+        position="-0.5 1 1"
+      ></a-entity>
+    </a-scene>
+    <canvas id="my-canvas" crossorigin="anonymous"></canvas>
+  </body>
+</html>

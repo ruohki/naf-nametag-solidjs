@@ -36,17 +36,9 @@ const webServer = http.createServer(app);
 // Start Socket.io so it attaches itself to Express server
 const socketServer = socketIo(webServer, { "log level": 1 });
 const myIceServers = [
-  { urls: "stun:atembiennial.space:5349" }
-  // {
-  //   "urls":"turn:[ADDRESS]:[PORT]",
-  //   "username":"[USERNAME]",
-  //   "credential":"[CREDENTIAL]"
-  // },
-  // {
-  //   "urls":"turn:[ADDRESS]:[PORT][?transport=tcp]",
-  //   "username":"[USERNAME]",
-  //   "credential":"[CREDENTIAL]"
-  // }
+  { urls: "turns:stream.live.atembiennial.space:5349", username: "abc", credential: "abc" },
+  { urls: "turns:stream.live.atembiennial.space:5349?transport=tcp", username: "abc", credential: "abc" },
+  { urls: "stun:stun1.l.google.com:19302" }
 ];
 easyrtc.setOption("appIceServers", myIceServers);
 easyrtc.setOption("logLevel", "debug");

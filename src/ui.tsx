@@ -15,7 +15,7 @@ const [sceneLoaded, setSceneLoaded] = createSignal(false);
 const UserForm = () => {
   return (
     <div class="flex flex-col gap-2">
-      <label for="username">Your name</label>
+      <label for="username">Avatar Name:</label>
       <UsernameInput entity="#player" />
     </div>
   );
@@ -41,13 +41,32 @@ const SettingsScreen = () => {
 
 const EnterScreen = () => {
   return (
-    <div class="naf-centered-fullscreen">
+
+    <div class="naf-centered-fullscreen" style="background-image: url('../assets/BannerHintergrund.png'); background-repeat: no-repeat; background-position:center;  background-size: cover;">
+         <img src="../assets/LogoMap.png" style="max-width: 30%; object-position: 1% 1%;"></img>
+         <div style="font-size:20px;text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;"><p><b>Please use Chrome or Chromium-based browser.</b></p><p><b>If you don't hear any sound, or don't see any other users, please try to reload.</b></p>
+        <p></p><p>&nbsp;</p>
+ <p>
+   Look around by dragging the mouse and move through the room with the WASD or arrow keys. </p>
+        <p>Use headphones for better spatial audio experience.</p>
+        <p>To avoid a jerky performance, an up-to-date computer with a certain graphics performance is recommended.</p>
+ 
+        <p>Or use a VR headset of your choice for immersive experience.</p>
+
+        <p>Jump in!</p>
+        </div>
+
       <UserForm />
       <button
         type="button"
         id="playButton"
         class="btn min-w-[100px]"
         onClick={() => {
+          const audio = new Audio(
+            "enter.wav"
+          );
+          audio.play();
+          
           setEntered(true);
           const sceneEl = document.querySelector('a-scene');
           // emit connect when the scene has loaded

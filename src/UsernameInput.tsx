@@ -56,7 +56,7 @@ export const UsernameInput: Component<Props> = (props) => {
           setUsername(e.target.value);
         }}
       />
-      <Show when={props.enableColorPicker ?? true}>
+      <Show when={props.enableColorPicker ?? false}>
         <input
           id="avatarcolor"
           type="color"
